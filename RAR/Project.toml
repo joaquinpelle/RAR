@@ -1,0 +1,11 @@
+name = "RAR"
+uuid = "6ab3ad51-4bb7-4d38-96fd-7030cf2d9f70"
+authors = ["Joaquin <pelle.joaquin@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
+HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+Skylight = "4e57a7cc-3de9-485c-8eb7-83ba6280373b"
