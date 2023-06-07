@@ -33,7 +33,7 @@ for E in energies
             Nstr = string(@sprintf("%04d", Nres))
             filename = "$(E)keV_ideg$(ξstr)_$(rname)_s$(srsat)rsat_N$(Nstr)"
             
-            image_plane = ImagePlane(distance = 1e-5*r_sup,
+            camera = ImagePlane(distance = 1e-5*r_sup,
                                     observer_inclination_in_degrees = ξ,
                                     horizontal_side = srsat*rsat,
                                     vertical_side = srsat*rsat,
@@ -43,8 +43,8 @@ for E in energies
             model = RARDisk(inner_radius=rd_in, outer_radius=rd_out, alpha=0.5, M1=M1)
                     
             configurations = VacuumOTEConfigurations(spacetime=spacetime,
-                                                    camera = image_plane,
-                                                    observed_times = [0.0],
+                                                    camera = camera,
+                                                    observation_times = [0.0],
                                                     radiative_model = model,
                                                     unit_mass_in_solar_masses=model.M1)
             
