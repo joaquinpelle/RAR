@@ -3,10 +3,10 @@ using CairoMakie
 using Printf
 
 M1 = 1.02e7 #Unit mass in solar masses
-energies = [200] #energies in keV of the fermion
+energies = [378] #energies in keV of the fermion
 inclinations = [5, 25, 45, 65, 85] #inclinations in degrees of the observer
-Nres = 1000 #number of pixels per side of the image
-srsat = 75 #side of the image plane in units of Rsat
+Nres = 100 #number of pixels per side of the image
+srsat = 150 #side of the image plane in units of Rsat
 
 function myprofile(position, spacetime, model)
     r = radius(position, spacetime)
@@ -15,12 +15,12 @@ end
 
 num_bins = 40
 
-rsat = 1.980475e+12
-rsat = CGS_to_geometrized(rsat, Dimensions.length, M1=M1) 
-rd_out = 1e3*rsat
-
+rsat_dict = Dict(200=>1.980475e+12, 378=>3.674705e+11)
 for E in energies
 
+    rsat = rsat_dict[E]
+    rsat = CGS_to_geometrized(rsat, Dimensions.length, M1=M1) 
+    rd_out = 1e3*rsat
     spacetime = RARSpacetime(data_dir = "io/$(E)keV")
     r_inf, r_sup = radial_bounds(spacetime)
     inner_radii = Dict("r0"=>r_inf, "rsat"=>rsat)
@@ -46,14 +46,15 @@ for E in energies
                                                     camera = camera,
                                                     radiative_model = model,
                                                     unit_mass_in_solar_masses=model.M1)
-
+            println(r_sup)
+            println(rd_out)
             initial_data = initialize(configurations)
 
             cb, cb_params = callback_setup(configurations) #... or, define your own cb and cb_params
 
             run = integrate(initial_data, configurations, cb, cb_params; method=VCABM(), reltol=1e-13, abstol=1e-21)
 
-            save_to_hdf5("io/RAR/$(filename).h5", configurations, initial_data, run; mode="w")        
+            save_to_hdf5("io/RAR/$(filename).h5", configurations, initial_data, run; mode="cw")        
             
             output_data = run.output_data
             

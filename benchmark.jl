@@ -1,5 +1,4 @@
 using Skylight
-using BenchmarkTools
 
 M1 = 1.02e7 #Unit mass in solar masses
 energies = [200] #energies in keV of the fermion
