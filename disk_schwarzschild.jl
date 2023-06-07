@@ -1,14 +1,14 @@
+using Pkg
+Pkg.activate("RAR")
 using Skylight
 using CairoMakie
 using Printf
 
 M1 = 1.02e7 #Unit mass in solar masses
-energies = [200] #energies in keV of the fermion
+energies = [378] #energies in keV of the fermion
 inclinations = [5, 25, 45, 65, 85] #inclinations in degrees of the observer
 Nres = 1000 #number of pixels per side of the image
-srsat = 75 #side of the image plane in units of Rsat
-
-inner_radii = Dict("r0"=>1.654835e+06, "rsat"=>1.980475e+12)
+srsat = 300 #side of the image plane in units of Rsat
 
 function myprofile(position, spacetime, model)
     r = radius(position, spacetime)
@@ -17,20 +17,18 @@ end
 
 num_bins = 40
 
-for (rname, rd_in) in inner_radii
-    inner_radii[rname] = CGS_to_geometrized(rd_in, Dimensions.length, M1=M1)
-end
-    
-rsat = inner_radii["rsat"]
-rd_out = 1e3*rsat
-
 spacetime = SchwarzschildSpacetimeSphericalCoordinates(M=1.0)
 rd_in = isco_radius(spacetime)
 
+rsat_dict = Dict(200=>1.980475e+12, 378=>3.674705e+11)
 for E in energies
 
     rar_spacetime = RARSpacetime(data_dir = "io/$(E)keV")
     r_inf, r_sup = radial_bounds(rar_spacetime)
+
+    rsat = rsat_dict[E]
+    rsat = CGS_to_geometrized(rsat, Dimensions.length, M1=M1) 
+    rd_out = 1e3*rsat
 
     for ξ in inclinations
             
@@ -60,7 +58,7 @@ for E in energies
         run = integrate(initial_data, configurations, cb, cb_params; method=VCABM(), reltol=1e-13, abstol=1e-21)
         output_data = run.output_data
 
-	    save_to_hdf5("io/schw/$(filename).h5", configurations, initial_data, run)        
+	    save_to_hdf5("io/schw/$(filename).h5", configurations, initial_data, run; mode="cw")        
         
         #Bolometric intensity image
         Iobs, q = observed_bolometric_intensities(initial_data, output_data, configurations)

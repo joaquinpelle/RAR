@@ -1,3 +1,5 @@
+using Pkg
+Pkg.activate("RAR")
 using Skylight
 using CairoMakie
 using Printf
@@ -5,7 +7,7 @@ using Printf
 M1 = 1.02e7 #Unit mass in solar masses
 energies = [378] #energies in keV of the fermion
 inclinations = [5, 25, 45, 65, 85] #inclinations in degrees of the observer
-Nres = 100 #number of pixels per side of the image
+Nres = 1000 #number of pixels per side of the image
 srsat = 150 #side of the image plane in units of Rsat
 
 function myprofile(position, spacetime, model)
