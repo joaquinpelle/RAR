@@ -51,63 +51,80 @@ for E in energies
                                                 radiative_model = model,
                                                 unit_mass_in_solar_masses=model.M1)
 
-        initial_data = initialize(configurations)
+        # initial_data = initialize(configurations)
 
+        initial_data = load_initial_data_from_hdf5("io/schw/$(filename).h5")
         cb, cb_params = callback_setup(configurations, rhorizon_bound=2e-1) #... or, define your own cb and cb_params
 
-        run = integrate(initial_data, configurations, cb, cb_params; method=VCABM(), reltol=1e-13, abstol=1e-21)
-        output_data = run.output_data
+        # run = integrate(initial_data, configurations, cb, cb_params; method=VCABM(), reltol=1e-13, abstol=1e-21)
+        # output_data = run.output_data
 
-	    save_to_hdf5("io/schw/$(filename).h5", configurations, initial_data, run; mode="cw")        
+        output_data = load_output_data_from_hdf5("io/schw/$(filename).h5", 1)
+	    # save_to_hdf5("io/schw/$(filename).h5", configurations, initial_data, run; mode="cw")        
         
         #Bolometric intensity image
-        Iobs, q = observed_bolometric_intensities(initial_data, output_data, configurations)
+        # Iobs, q = observed_bolometric_intensities(initial_data, output_data, configurations)
 
-        xs,ys = axes_ranges(configurations.camera)
+        # xs,ys = axes_ranges(configurations.camera)
 
-        zs = grid_view(Iobs, configurations)
+        # zs = grid_view(Iobs, configurations)
 
+        # fig = Figure(font = "Times New Roman")
+        # ax = Axis(fig[1,1], xlabel=L"\alpha/(GM/c^2)", ylabel=L"\beta/(GM/c^2)", ylabelsize = 26, xlabelsize = 26) 
+        # hmap = heatmap!(xs, ys, zs/maximum(zs); colormap=:gist_heat, interpolate=true)
+        # Colorbar(fig[:, end+1], hmap, label=L"I \text{(arbitrary)}", labelsize=26, width = 15, ticksize = 18, tickalign = 1)
+        # colsize!(fig.layout, 1, Aspect(1, 1.0))
+        # colgap!(fig.layout, 7)
+        # CairoMakie.save("plots/schw/bolometric/$(filename).png", fig)
+        
+        # #Specific intensity image
+        # λ_EHT_Apr17 = 0.13
+        # ε = PhysicalConstants.h*PhysicalConstants.c/λ_EHT_Apr17
+
+        # Iobs, q = observed_specific_intensities(initial_data, output_data, configurations, [ε])
+        # zs = grid_view(Iobs, configurations; energy_index=1)
+        
+        # fig = Figure(font = "Times New Roman")
+        # ax = Axis(fig[1,1], xlabel=L"\alpha/(GM/c^2)", ylabel=L"\beta/(GM/c^2)", ylabelsize = 26, xlabelsize = 26) 
+        # hmap = heatmap!(xs, ys, zs/maximum(zs); colormap=:gist_heat, interpolate=true)
+        # Colorbar(fig[:, end+1], hmap, label=L"I \text{(arbitrary)}", labelsize=26, width = 15, ticksize = 18, tickalign = 1)
+        # colsize!(fig.layout, 1, Aspect(1, 1.0))
+        # colgap!(fig.layout, 7)
+        # CairoMakie.save("plots/schw/specific/$(filename).png", fig)
+
+        # #Line emission spectrum
+        # binned_fluxes, bins = line_emission_spectrum(initial_data, output_data, configurations; emission_profile = myprofile, num_bins = num_bins)
+        # set_theme!(; fonts = (; regular = "Times New Roman"))
+
+        # # We calculate midpoints of x to use as x coordinates for y
+        # max_flux = maximum(binned_fluxes)
+        # bins_midpoints = 0.5*(bins[1:end-1] + bins[2:end])
+        # fig = Figure(resolution = (600, 400))
+        # ax = Axis(fig[1, 1], xlabel = L"E/E_0", ylabel = "Flux (arbitrary)", title = "Relativistic line broadening", titlefont=:regular)
+        # skl = lines!(ax, bins_midpoints, binned_fluxes/max_flux, linewidth = 3, color = :black)
+        
+        # ax.titlesize = 22
+        # ax.xlabelsize = 22
+        # ax.ylabelsize = 22
+        # ax.xticklabelsize = 15
+        # ax.yticklabelsize = 15
+        
+        # # Save the figure
+        # CairoMakie.save("plots/schw/line_broadening/$(filename)_bins$num_bins.png", fig; dpi=300)
+        
+        #Thermal spectrum
+        obs_energies = ε*exp10.(range(1.0, stop=9.0, length=20))
+        F = spectrum(initial_data, output_data, configurations, obs_energies)
         fig = Figure(font = "Times New Roman")
-        ax = Axis(fig[1,1], xlabel=L"\alpha/(GM/c^2)", ylabel=L"\beta/(GM/c^2)", ylabelsize = 26, xlabelsize = 26) 
-        hmap = heatmap!(xs, ys, zs/maximum(zs); colormap=:gist_heat, interpolate=true)
-        Colorbar(fig[:, end+1], hmap, label=L"I \text{(arbitrary)}", labelsize=26, width = 15, ticksize = 18, tickalign = 1)
-        colsize!(fig.layout, 1, Aspect(1, 1.0))
-        colgap!(fig.layout, 7)
-        CairoMakie.save("plots/schw/bolometric/$(filename).png", fig)
-        
-        #Specific intensity image
-        λ_EHT_Apr17 = 0.13
-        ε = PhysicalConstants.h*PhysicalConstants.c/λ_EHT_Apr17
+        ax = Axis(fig[1,1], xlabel=L"E \, [\text{keV}]", ylabel=L"F_E \,[\text{erg} \,\text{s}^{-1}\,\text{keV}^{-1}]", ylabelsize = 26, xlabelsize = 26, xscale=log10, yscale=log10)
+        lines!(ax, erg_to_keV(obs_energies), keV_to_erg(F); linewidth=2.0, color=:blue)
 
-        Iobs, q = observed_specific_intensities(initial_data, output_data, configurations, [ε])
-        zs = grid_view(Iobs, configurations; energy_index=1)
-        
-        fig = Figure(font = "Times New Roman")
-        ax = Axis(fig[1,1], xlabel=L"\alpha/(GM/c^2)", ylabel=L"\beta/(GM/c^2)", ylabelsize = 26, xlabelsize = 26) 
-        hmap = heatmap!(xs, ys, zs/maximum(zs); colormap=:gist_heat, interpolate=true)
-        Colorbar(fig[:, end+1], hmap, label=L"I \text{(arbitrary)}", labelsize=26, width = 15, ticksize = 18, tickalign = 1)
-        colsize!(fig.layout, 1, Aspect(1, 1.0))
-        colgap!(fig.layout, 7)
-        CairoMakie.save("plots/schw/specific/$(filename).png", fig)
-
-        #Line emission spectrum
-        binned_fluxes, bins = line_emission_spectrum(initial_data, output_data, configurations; emission_profile = myprofile, num_bins = num_bins)
-        set_theme!(; fonts = (; regular = "Times New Roman"))
-
-        # We calculate midpoints of x to use as x coordinates for y
-        max_flux = maximum(binned_fluxes)
-        bins_midpoints = 0.5*(bins[1:end-1] + bins[2:end])
-        fig = Figure(resolution = (600, 400))
-        ax = Axis(fig[1, 1], xlabel = L"E/E_0", ylabel = "Flux (arbitrary)", title = "Relativistic line broadening", titlefont=:regular)
-        skl = lines!(ax, bins_midpoints, binned_fluxes/max_flux, linewidth = 3, color = :black)
-        
         ax.titlesize = 22
         ax.xlabelsize = 22
         ax.ylabelsize = 22
         ax.xticklabelsize = 15
         ax.yticklabelsize = 15
         
-        # Save the figure
-        CairoMakie.save("plots/schw/line_broadening/$(filename)_bins$num_bins.png", fig; dpi=300)
+        CairoMakie.save("plots/schw/spectrum/$(filename).png", fig)
     end
 end
