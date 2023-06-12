@@ -48,8 +48,6 @@ for E in energies
                                                     camera = camera,
                                                     radiative_model = model,
                                                     unit_mass_in_solar_masses=model.M1)
-            println(r_sup)
-            println(rd_out)
             # initial_data = initialize(configurations)
             initial_data = load_initial_data_from_hdf5("io/RAR/$(filename).h5")
             cb, cb_params = callback_setup(configurations) #... or, define your own cb and cb_params
@@ -74,8 +72,8 @@ for E in energies
             # CairoMakie.save("plots/RAR/bolometric/$(filename).png", fig)
             
             # #Specific intensity image
-            # λ_EHT_Apr17 = 0.13
-            # ε = PhysicalConstants.h*PhysicalConstants.c/λ_EHT_Apr17
+            λ_EHT_Apr17 = 0.13
+            ε = PhysicalConstants.h*PhysicalConstants.c/λ_EHT_Apr17
 
             # Iobs, q = observed_specific_intensities(initial_data, output_data, configurations, [ε])
 
